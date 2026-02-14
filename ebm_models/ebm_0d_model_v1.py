@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
 
 def sigmoid(x, center, steepness):
     """Smooth transition function (0 to 1)."""
@@ -163,10 +164,13 @@ def plot_physics_manifold(df):
 if __name__ == "__main__":
     # Generate Data
     df = generate_training_data(1_000_000)
+
+    OUT_DIR = "../training_sets"
+    os.makedirs(OUT_DIR, exist_ok=True)
     
     # Save for your PyTorch script
     # This replaces your .dat files!
-    save_path = "toy_climate_data_1M.csv"
+    save_path = "../training_sets/ebm_0d_model_v1_climate_data_1M.csv"
     df.to_csv(save_path, index=False)
     print(f"Saved dataset to {save_path}")
     

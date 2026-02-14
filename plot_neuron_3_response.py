@@ -2,10 +2,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from climate_nn_toy import ClimateMLP
+from climate_nn import ClimateMLP
 
 def plot_neuron_response():
-    checkpoint_path = 'toy_outputs/climate_model.pt'
+    checkpoint_path = 'networks/climate_model.pt'
     if not os.path.exists(checkpoint_path):
         print("Model file not found. Ensure you have trained the [8,8,8,8] model.")
         return
@@ -60,8 +60,8 @@ def plot_neuron_response():
     plt.text(285, max(neuron_3_acts)*0.1, "MELT REGIME\n(Sensor Off)", color='gray', fontweight='bold')
     
     plt.tight_layout()
-    plt.savefig('toy_outputs/neuron_3_response_curve.png')
-    print("Saved neuron response curve to toy_outputs/neuron_3_response_curve.png")
+    plt.savefig('figures/neuron_3_response_curve.png')
+    print("Saved neuron response curve to figures/neuron_3_response_curve.png")
 
 if __name__ == "__main__":
     plot_neuron_response()

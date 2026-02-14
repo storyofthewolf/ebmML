@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from climate_nn_toy import ClimateMLP, load_and_split_data
+from climate_nn import ClimateMLP, load_and_split_data
 
 def deep_interpretability_analysis():
-    checkpoint_path = 'toy_outputs/climate_model.pt'
-    csv_path = 'toy_climate_data_1M.csv'
+    checkpoint_path = 'networks/climate_model.pt'
+    csv_path = 'training_sets/ebm_0d_model_v1_climate_data_1M.csv'
     
     # 1. Load Model and Data
     checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
@@ -39,8 +39,8 @@ def deep_interpretability_analysis():
     ax2.set_ylabel("Neuron 0 'Firing' Strength")
     
     plt.tight_layout()
-    plt.savefig('toy_outputs/neuron_scatter_shapes.png')
-    print("Saved scatter plots to toy_outputs/neuron_scatter_shapes.png")
+    plt.savefig('figures/neuron_scatter_shapes.png')
+    print("Saved scatter plots to figures/neuron_scatter_shapes.png")
 
     # --- PART 2: THE DEEP LAYER CORRELATION ---
     # We repeat your heatmap logic but for 'relu_3'
@@ -62,8 +62,8 @@ def deep_interpretability_analysis():
     plt.colorbar(label='Correlation')
     plt.xticks(range(4), ['Ts', 'Albedo', 'Emissivity', 'N_toa'])
     plt.title('DEEP LAYER (relu_3) Specialization\n(Note the increased complexity)')
-    plt.savefig('toy_outputs/deep_layer_correlations.png')
-    print("Saved deep correlation map to toy_outputs/deep_layer_correlations.png")
+    plt.savefig('figures/deep_layer_correlations.png')
+    print("Saved deep correlation map to figures/deep_layer_correlations.png")
 
 if __name__ == "__main__":
     deep_interpretability_analysis()

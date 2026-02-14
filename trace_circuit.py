@@ -1,10 +1,10 @@
 import torch
 import os
 import pandas as pd
-from climate_nn_toy import ClimateMLP
+from climate_nn import ClimateMLP
 
 def trace_circuit():
-    checkpoint_path = 'toy_outputs/climate_model.pt'
+    checkpoint_path = 'networks/climate_model.pt'
     if not os.path.exists(checkpoint_path):
         print("Model file not found.")
         return

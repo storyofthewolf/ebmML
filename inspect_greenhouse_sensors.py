@@ -1,9 +1,9 @@
 import torch
 import os
-from climate_nn_toy import ClimateMLP
+from climate_nn import ClimateMLP
 
 def inspect_greenhouse_sensors():
-    checkpoint_path = 'toy_outputs/climate_model.pt'
+    checkpoint_path = 'outputs/climate_model.pt'
     checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
     model = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3)
     model.load_state_dict(checkpoint['model_state_dict'])

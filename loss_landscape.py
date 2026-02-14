@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import os
 
 # Import the model structure from your other script
-from climate_nn_toy import ClimateMLP, ToyClimateDataset, load_and_split_data
+from climate_nn import ClimateMLP, limateDataset, load_and_split_data
 
 def get_random_direction(model):
     """
@@ -131,12 +131,12 @@ def plot_landscape_contour(alphas, betas, loss_surface, savepath):
 
 if __name__ == "__main__":
     # Setup
-    CSV_PATH = "toy_climate_data_1M.csv"
+    CSV_PATH = "training_sets/ebm_0d_model_v1_climate_data_1M.csv"
     
     # 1. Load Data
     print("Loading data...")
     if not os.path.exists(CSV_PATH):
-        raise FileNotFoundError(f"{CSV_PATH} not found. Run climate_nn_toy.py first.")
+        raise FileNotFoundError(f"{CSV_PATH} not found. Run climate_nn.py first.")
 
     _, val_ds = load_and_split_data(CSV_PATH)
     # Use a subset of validation data for faster plotting
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     
     # --- THE FIX IS HERE ---
     # We added weights_only=False to allow loading the scaler objects
-    checkpoint = torch.load('toy_outputs/climate_model.pt', 
+    checkpoint = torch.load('networks/climate_model.pt', 
                           map_location='cpu', 
                           weights_only=False)
     
@@ -159,5 +159,5 @@ if __name__ == "__main__":
     alphas, betas, Z = compute_loss_surface(model, val_loader, range_val=1.0, steps=25)
     
     # 4. Visualize
-    plot_landscape_3d(alphas, betas, Z, 'toy_outputs/landscape_3d.png')
-    plot_landscape_contour(alphas, betas, Z, 'toy_outputs/landscape_contour.png')
+    plot_landscape_3d(alphas, betas, Z, 'figures/landscape_3d.png')
+    plot_landscape_contour(alphas, betas, Z, 'figures/landscape_contour.png')

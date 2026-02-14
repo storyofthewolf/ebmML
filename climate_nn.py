@@ -1,7 +1,7 @@
 """
-Toy Climate NN - Master Script
+Climate NN - Master Script
 ==============================
-1. Loads toy_climate_data_1M.csv
+1. Loads energy balance model climate data
 2. Trains the Neural Network
 3. Generates Interpretability Plots (Neuron Correlations)
 4. Saves model for Loss Landscape analysis
@@ -21,7 +21,7 @@ import os
 # 1. DATA LOADING
 # =============================================================================
 
-class ToyClimateDataset(Dataset):
+class ClimateDataset(Dataset):
     """Dataset for the 1M point synthetic physics data."""
     
     def __init__(self, dataframe: pd.DataFrame, 
@@ -76,8 +76,8 @@ def load_and_split_data(csv_path, val_size=0.2, seed=42):
     
     train_df, val_df = train_test_split(df, test_size=val_size, random_state=seed)
     
-    train_ds = ToyClimateDataset(train_df)
-    val_ds = ToyClimateDataset(val_df, 
+    train_ds = ClimateDataset(train_df)
+    val_ds = ClimateDataset(val_df, 
                                scaler_X=train_ds.scaler_X, 
                                scaler_Y=train_ds.scaler_Y,
                                is_validation=True)
@@ -243,9 +243,12 @@ def train_model(model, train_loader, val_loader, epochs=20, lr=1e-3, device='cpu
 
 if __name__ == "__main__":
     # Config
-    CSV_PATH = "toy_climate_data_1M.csv" 
-    OUT_DIR = "toy_outputs"
-    os.makedirs(OUT_DIR, exist_ok=True)
+    CSV_PATH = "training_sets/ebm_0d_model_v1_climate_data_1M.csv" 
+    OUT_DIR_FIGS = "figures"
+    os.makedirs(OUT_DIR_FIGS, exist_ok=True)
+    OUT_DIR_NN = "networks"
+    os.makedirs(OUT_DIR_NN, exist_ok=True)
+
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # 1. Load Data
@@ -266,10 +269,10 @@ if __name__ == "__main__":
     print("\nTop 'Albedo' Neurons:")
     print(df_corr.sort_values('corr_Albedo', ascending=False).head(3))
     
-    plot_correlations(df_corr, f"{OUT_DIR}/neuron_correlations.png")
+    plot_correlations(df_corr, f"{OUT_DIR_FIGS}/neuron_correlations.png")
     
     # 5. Save Model (for Landscape Script)
-    print(f"\nSaving model to {OUT_DIR}/climate_model.pt ...")
+    print(f"\nSaving model to {OUT_DIR_NN}/climate_model.pt ...")
     torch.save({
         'model_state_dict': model.state_dict(),
         'scaler_X': train_ds.scaler_X,
@@ -279,6 +282,6 @@ if __name__ == "__main__":
             'hidden_dims': [8,8,8,8],
             'output_dim': 3
         }
-    }, f'{OUT_DIR}/climate_model.pt')
+    }, f'{OUT_DIR_NN}/climate_model.pt')
     
-    print("\nDONE! You can now run 'toy_loss_landscape.py'.")
+    print("\nDONE! You can now run 'loss_landscape.py'.")

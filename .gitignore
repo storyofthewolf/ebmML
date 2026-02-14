@@ -9,3 +9,7 @@ __pycache__/
 *.pth
 *.h5
 *.csv
+*.pt
+
+#Apple nonsense
+.DS_Store

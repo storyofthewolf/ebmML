@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import os
-from climate_nn_toy import ClimateMLP, load_and_split_data
+from climate_nn import ClimateMLP, load_and_split_data
 
-def run_dual_surgery():
+def run_dual_ablation():
     # 1. Setup
-    checkpoint_path = 'toy_outputs/climate_model.pt'
+    checkpoint_path = 'networks/climate_model.pt'
     device = 'cpu'
     
     # Load Model & Scalers
@@ -67,7 +67,7 @@ def run_dual_surgery():
     plt.title('Mechanistic Interpretability: Impact of Targetted Neuron Removal')
     plt.legend()
     plt.grid(True, alpha=0.2)
-    plt.savefig('toy_outputs/dual_surgery_results.png')
+    plt.savefig('figures/dual_ablation_results.png')
     plt.show()
 
 if __name__ == "__main__":

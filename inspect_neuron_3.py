@@ -1,9 +1,9 @@
 import torch
 import os
-from climate_nn_toy import ClimateMLP
+from climate_nn import ClimateMLP
 
 def inspect_neuron_3():
-    checkpoint_path = 'toy_outputs/climate_model.pt'
+    checkpoint_path = 'networks/climate_model.pt'
     
     if not os.path.exists(checkpoint_path):
         print("Error: Model file not found.")
