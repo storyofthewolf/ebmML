@@ -1,18 +1,19 @@
 import torch
 import os
-from climate_nn import ClimateMLP
+from climate_nn import load_model_from_checkpoint
 
 def inspect_neuron_3():
-    checkpoint_path = 'networks/climate_model.pt'
-    
+    checkpoint_path = '../networks/climate_model.pt'    
     if not os.path.exists(checkpoint_path):
         print("Error: Model file not found.")
         return
 
     # 1. Load the model
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    model = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3)
-    model.load_state_dict(checkpoint['model_state_dict'])
+    try:
+        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
     
     # 2. Extract Weights and Bias for Layer 1, Neuron 3
     # Weights shape is [8 neurons, 3 inputs]

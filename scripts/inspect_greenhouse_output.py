@@ -1,12 +1,25 @@
+import sys
 import torch
 import os
-from climate_nn import ClimateMLP
+
+# Add parent directory to path to find config.py and climate_nn.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from config import MODEL_PATH
+from climate_nn import load_model_from_checkpoint
 
 def inspect_greenhouse_output():
-    checkpoint_path = 'outputs/climate_model.pt'
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    model = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3)
-    model.load_state_dict(checkpoint['model_state_dict'])
+
+    if not os.path.exists(MODEL_PATH):
+        print(f"Model file not found at: {MODEL_PATH}")
+        return
+
+    try:
+        model, checkpoint = load_model_from_checkpoint(MODEL_PATH)
+        print(f"Model file not found at: {MODEL_PATH}")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
     
     # Trace from L2 Neuron 6 toward the FINAL OUTPUTS
     # Output 0: Ts_next, Output 1: OLR, Output 2: ASR

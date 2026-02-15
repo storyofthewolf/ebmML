@@ -14,8 +14,8 @@ The laboratory operates in three phases:
 ## 📄 Script Directory
 
 ### 1. Data Generation
-* **`ebm_models/ebm_0d_model_v1.py -- 0D energy balance model, produces dT/dt for abitrary timestep
-* **`ebm_models/ebm_0d_model_v2.py -- 0D energy balance model, run to convergence Ts
+* **`ebm_models/ebm_0d_model_v1.py`**: 0D energy balance model, produces dT/dt for abitrary timestep
+* **`ebm_models/ebm_0d_model_v2.py`**: 0D energy balance model, run to convergence Ts
 
 ### 2. Core Model & Training
 * **`climate_nn.py`**: The master script. It contains, the `ClimateMLP` architecture (`[8, 8, 8, 8]`), and the `InterpretabilityAnalyzer` which produces the initial neuron-physical correlation heatmaps.

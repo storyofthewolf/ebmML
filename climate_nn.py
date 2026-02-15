@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import os
+from config import DEFAULT_MODEL_CONFIG, MODEL_PATH, DATA_PATH, FIGURES_DIR
 
 # =============================================================================
 # 1. DATA LOADING
@@ -84,6 +85,28 @@ def load_and_split_data(csv_path, val_size=0.2, seed=42):
     
     return train_ds, val_ds
 
+def load_model_from_checkpoint(checkpoint_path, device='cpu'):
+    """
+    Standalone utility to reconstruct a model from a saved .pt file.
+    Resides outside the class to act as a factory.
+    """
+    # 1. Load the dictionary from disk
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    
+    # 2. Extract the saved configuration
+    config = checkpoint.get('config')
+    if config is None:
+        raise ValueError(f"No 'config' found in {checkpoint_path}.")
+    
+    # 3. Use the config to instantiate the class
+    model = ClimateMLP(config).to(device)
+    
+    # 4. Apply the learned weights
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
+    
+    return model, checkpoint
+
 # =============================================================================
 # 2. NEURAL NETWORK
 # =============================================================================
@@ -91,18 +114,23 @@ def load_and_split_data(csv_path, val_size=0.2, seed=42):
 class ClimateMLP(nn.Module):
     """Simple MLP with hooks for mechanistic interpretability."""
     
-    def __init__(self, input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3):
+    def __init__(self, config):
         super().__init__()
-        
+        self.config = config # Store the config inside the model
+
+        # Dynamic Activation Function (Default to ReLU if not specified)
+        activation_name = config.get('activation', 'ReLU')
+        activation_fn = getattr(nn, activation_name)
+
         layers = []
-        prev_dim = input_dim
+        prev_dim = config['input_dim']
         
-        for i, h_dim in enumerate(hidden_dims):
+        for h_dim in config['hidden_dims']:
             layers.append(nn.Linear(prev_dim, h_dim))
-            layers.append(nn.ReLU())
+            layers.append(activation_fn()) # Use the dynamic function
             prev_dim = h_dim
             
-        layers.append(nn.Linear(prev_dim, output_dim))
+        layers.append(nn.Linear(prev_dim, config['output_dim']))
         self.network = nn.Sequential(*layers)
         
         self.activations = {}
@@ -242,46 +270,41 @@ def train_model(model, train_loader, val_loader, epochs=20, lr=1e-3, device='cpu
 # =============================================================================
 
 if __name__ == "__main__":
-    # Config
-    CSV_PATH = "training_sets/ebm_0d_model_v1_climate_data_1M.csv" 
-    OUT_DIR_FIGS = "figures"
-    os.makedirs(OUT_DIR_FIGS, exist_ok=True)
-    OUT_DIR_NN = "networks"
-    os.makedirs(OUT_DIR_NN, exist_ok=True)
-
+    # [NEW] Use Paths from Config
+    # DATA_PATH, FIGURES_DIR, and MODEL_PATH are now imported!
+    
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # 1. Load Data
-    train_ds, val_ds = load_and_split_data(CSV_PATH)
+    print(f"Loading data from {DATA_PATH}...")
+    train_ds, val_ds = load_and_split_data(DATA_PATH)
     train_loader = DataLoader(train_ds, batch_size=1024, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=4096)
     
-    # 2. Build Model
-    model = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3).to(DEVICE)
+    # 2. Build Model using the Recipe
+    print(f"Building model with config: {DEFAULT_MODEL_CONFIG}")
+    model = ClimateMLP(DEFAULT_MODEL_CONFIG).to(DEVICE)
     
     # 3. Train
     history = train_model(model, train_loader, val_loader, epochs=20, device=DEVICE)
     
-    # 4. Run Interpretability (Restored!)
+    # 4. Run Interpretability
     analyzer = InterpretabilityAnalyzer(model, train_ds, device=DEVICE)
     df_corr = analyzer.correlate_neurons_with_physics()
     
     print("\nTop 'Albedo' Neurons:")
     print(df_corr.sort_values('corr_Albedo', ascending=False).head(3))
     
-    plot_correlations(df_corr, f"{OUT_DIR_FIGS}/neuron_correlations.png")
+    save_plot_path = os.path.join(FIGURES_DIR, "neuron_correlations.png")
+    plot_correlations(df_corr, save_plot_path)
     
-    # 5. Save Model (for Landscape Script)
-    print(f"\nSaving model to {OUT_DIR_NN}/climate_model.pt ...")
+    # 5. Save Model
+    print(f"\nSaving model to {MODEL_PATH} ...")
     torch.save({
         'model_state_dict': model.state_dict(),
         'scaler_X': train_ds.scaler_X,
         'scaler_Y': train_ds.scaler_Y,
-        'config': {
-            'input_dim': 3,
-            'hidden_dims': [8,8,8,8],
-            'output_dim': 3
-        }
-    }, f'{OUT_DIR_NN}/climate_model.pt')
+        'config': DEFAULT_MODEL_CONFIG  # [NEW] Save the recipe with the cake!
+    }, MODEL_PATH)
     
-    print("\nDONE! You can now run 'loss_landscape.py'.")
+    print("\nDONE! You can now run the analysis scripts in the 'scripts/' folder.")

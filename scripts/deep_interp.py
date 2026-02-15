@@ -3,17 +3,26 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-from climate_nn import ClimateMLP, load_and_split_data
+from climate_nn import load_model_from_checkpoint
 
 def deep_interpretability_analysis():
-    checkpoint_path = 'networks/climate_model.pt'
-    csv_path = 'training_sets/ebm_0d_model_v1_climate_data_1M.csv'
-    
+    checkpoint_path = '../networks/climate_model.pt'
+    if not os.path.exists(checkpoint_path):
+        print("Model file not found.")
+        return
+
+    csv_path = '../training_sets/ebm_0d_model_v1_climate_data_1M.csv'
+    if not os.path.exists(csv_path):
+        print("Model file not found.")
+        return
+
     # 1. Load Model and Data
-    checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
-    model = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.eval()
+    try:
+        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
+
     
     df = pd.read_csv(csv_path).sample(10000) # Sample for speed
     scaler_X = checkpoint['scaler_X']

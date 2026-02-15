@@ -3,18 +3,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import os
-from climate_nn import ClimateMLP, load_and_split_data
+from climate_nn import load_model_from_checkpoint
 
 def run_dual_ablation():
     # 1. Setup
-    checkpoint_path = 'networks/climate_model.pt'
-    device = 'cpu'
-    
+    checkpoint_path = '../networks/climate_model.pt'
+    if not os.path.exists(checkpoint_path):
+        print("Model file not found.")
+        return
+
     # Load Model & Scalers
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    model_base = ClimateMLP(input_dim=3, hidden_dims=[8, 8, 8, 8], output_dim=3)
-    model_base.load_state_dict(checkpoint['model_state_dict'])
-    model_base.eval()
+    try:
+        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
+
 
     # 2. Perform Surgeries
     # Surgery A: Remove Ice Feedback (Neurons 3 and 5)

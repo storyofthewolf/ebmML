@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import os
 
 # Import the model structure from your other script
-from climate_nn import ClimateMLP, limateDataset, load_and_split_data
+from climate_nn import load_model_from_checkpoint, load_and_split_data
 
 def get_random_direction(model):
     """
@@ -131,7 +131,8 @@ def plot_landscape_contour(alphas, betas, loss_surface, savepath):
 
 if __name__ == "__main__":
     # Setup
-    CSV_PATH = "training_sets/ebm_0d_model_v1_climate_data_1M.csv"
+    CSV_PATH = "../training_sets/ebm_0d_model_v1_climate_data_1M.csv"
+    checkpoint_path = '../networks/climate_model.pt'
     
     # 1. Load Data
     print("Loading data...")
@@ -144,20 +145,17 @@ if __name__ == "__main__":
     
     # 2. Load Your Model
     print("Loading model...")
-    model = ClimateMLP(input_dim=3, hidden_dims=[32, 32], output_dim=3)
-    
-    # --- THE FIX IS HERE ---
-    # We added weights_only=False to allow loading the scaler objects
-    checkpoint = torch.load('networks/climate_model.pt', 
-                          map_location='cpu', 
-                          weights_only=False)
-    
-    model.load_state_dict(checkpoint['model_state_dict'])
+     try:
+        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
+
     
     # 3. Compute Landscape
     # range_val=1.0 means we look at weights +/- 100% of their current magnitude
     alphas, betas, Z = compute_loss_surface(model, val_loader, range_val=1.0, steps=25)
     
     # 4. Visualize
-    plot_landscape_3d(alphas, betas, Z, 'figures/landscape_3d.png')
-    plot_landscape_contour(alphas, betas, Z, 'figures/landscape_contour.png')
+    plot_landscape_3d(alphas, betas, Z, '../figures/landscape_3d.png')
+    plot_landscape_contour(alphas, betas, Z, '../figures/landscape_contour.png')
