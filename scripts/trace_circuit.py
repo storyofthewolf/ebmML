@@ -1,17 +1,19 @@
 import torch
 import os
 import pandas as pd
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import MODEL_PATH, FIGURES_DIR
 from climate_nn import load_model_from_checkpoint
 
 def trace_circuit():
-    checkpoint_path = '../networks/climate_model.pt'
-    if not os.path.exists(checkpoint_path):
-        print("Model file not found.")
+    if not os.path.exists(MODEL_PATH):
+        print(f"Model file not found at: {MODEL_PATH}")
         return
 
     # 1. Load the model
     try:
-        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+        model, checkpoint = load_model_from_checkpoint(MODEL_PATH)
     except Exception as e:
         print(f"Error loading model: {e}")
         return

@@ -1,11 +1,14 @@
+import sys
 import torch
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import the model structure from your other script
+from config import MODEL_PATH, DATA_PATH, FIGURES_DIR
 from climate_nn import load_model_from_checkpoint, load_and_split_data
 
 def get_random_direction(model):
@@ -130,26 +133,28 @@ def plot_landscape_contour(alphas, betas, loss_surface, savepath):
     print(f"Saved contour map to {savepath}")
 
 if __name__ == "__main__":
-    # Setup
-    CSV_PATH = "../training_sets/ebm_0d_model_v1_climate_data_1M.csv"
-    checkpoint_path = '../networks/climate_model.pt'
-    
-    # 1. Load Data
-    print("Loading data...")
-    if not os.path.exists(CSV_PATH):
-        raise FileNotFoundError(f"{CSV_PATH} not found. Run climate_nn.py first.")
+    # 1. Load Data using Global Config Path
+    print(f"Loading data from {DATA_PATH}...")
+    if not os.path.exists(DATA_PATH):
+        print(f"Error: Data file not found at {DATA_PATH}")
+        sys.exit(1)
 
-    _, val_ds = load_and_split_data(CSV_PATH)
+    # We only need validation data to check the landscape quality
+    _, val_ds = load_and_split_data(DATA_PATH)
     # Use a subset of validation data for faster plotting
     val_loader = DataLoader(val_ds, batch_size=5000, shuffle=False)
     
-    # 2. Load Your Model
-    print("Loading model...")
-     try:
-        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+    # 2. Load Model using Global Config Path
+    print(f"Loading model from {MODEL_PATH}...")
+    if not os.path.exists(MODEL_PATH):
+        print(f"Error: Model file not found at {MODEL_PATH}")
+        sys.exit(1)
+
+    try:
+        model, checkpoint = load_model_from_checkpoint(MODEL_PATH)
     except Exception as e:
         print(f"Error loading model: {e}")
-        return
+        sys.exit(1)
 
     
     # 3. Compute Landscape
@@ -157,5 +162,6 @@ if __name__ == "__main__":
     alphas, betas, Z = compute_loss_surface(model, val_loader, range_val=1.0, steps=25)
     
     # 4. Visualize
-    plot_landscape_3d(alphas, betas, Z, '../figures/landscape_3d.png')
-    plot_landscape_contour(alphas, betas, Z, '../figures/landscape_contour.png')
+    # Use global FIGURES_DIR for saving
+    plot_landscape_3d(alphas, betas, Z, os.path.join(FIGURES_DIR, 'landscape_3d.png'))
+    plot_landscape_contour(alphas, betas, Z, os.path.join(FIGURES_DIR, 'landscape_contour.png'))

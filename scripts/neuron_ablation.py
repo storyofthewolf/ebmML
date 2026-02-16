@@ -3,18 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import MODEL_PATH, FIGURES_DIR
 from climate_nn import load_model_from_checkpoint
 
 def run_dual_ablation():
     # 1. Setup
-    checkpoint_path = '../networks/climate_model.pt'
-    if not os.path.exists(checkpoint_path):
-        print("Model file not found.")
+    if not os.path.exists(MODEL_PATH):
+        print(f"Model file not found at: {MODEL_PATH}")
         return
 
     # Load Model & Scalers
     try:
-        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+        model_base, checkpoint = load_model_from_checkpoint(MODEL_PATH)
     except Exception as e:
         print(f"Error loading model: {e}")
         return
@@ -71,8 +73,10 @@ def run_dual_ablation():
     plt.title('Mechanistic Interpretability: Impact of Targetted Neuron Removal')
     plt.legend()
     plt.grid(True, alpha=0.2)
-    plt.savefig('figures/dual_ablation_results.png')
+    save_path = os.path.join(FIGURES_DIR, 'dual_ablation_results.png')
+    plt.savefig(save_path)
+    print(f"Saved ablation response curve to {save_path}")
     plt.show()
 
 if __name__ == "__main__":
-    run_dual_surgery()
+    run_dual_ablation()

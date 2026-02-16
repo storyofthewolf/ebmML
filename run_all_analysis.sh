@@ -27,25 +27,25 @@ mkdir -p networks
 # We use 'python -m scripts.script_name' or direct path execution depending on your setup.
 # Here we execute by path, relying on the sys.path.append header we added.
 
-echo ""
-echo "[1/5] Mapping Loss Landscape..."
-python scripts/loss_landscape.py
+#echo ""
+#echo "Mapping Loss Landscape..."
+#python scripts/loss_landscape.py
 
 echo ""
-echo "[2/5] Tracing Ice-Albedo Circuit..."
+echo "Tracing Ice-Albedo Circuit..."
 python scripts/trace_circuit.py
 
 echo ""
-echo "[3/5] Tracing Greenhouse/Thermostat Circuit..."
+echo "Tracing Greenhouse/Thermostat Circuit..."
 python scripts/inspect_greenhouse_output.py
 python scripts/inspect_greenhouse_sensors.py
 
 echo ""
-echo "[4/5] Generating Neuron Response Curves..."
+echo "Generating Neuron Response Curves..."
 python scripts/plot_neuron_3_response.py
 
 echo ""
-echo "[5/5] Performing Deep Interpretability Check..."
+echo "Performing Deep Interpretability Check..."
 python scripts/deep_interp.py
 python scripts/neuron_ablation.py
 

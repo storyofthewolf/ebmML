@@ -10,6 +10,7 @@ __pycache__/
 *.h5
 *.csv
 *.pt
+*.png
 
 #Apple nonsense
 .DS_Store

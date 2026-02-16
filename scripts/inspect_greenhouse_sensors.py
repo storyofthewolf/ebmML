@@ -1,15 +1,17 @@
 import torch
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import MODEL_PATH, FIGURES_DIR
 from climate_nn import load_model_from_checkpoint
 
 def inspect_greenhouse_sensors():
-    checkpoint_path = '../networks/climate_model.pt'
-    if not os.path.exists(checkpoint_path):
+    if not os.path.exists(MODEL_PATH):
         print("Model file not found.")
         return
 
     try:
-        model, checkpoint = load_model_from_checkpoint(checkpoint_path)
+        model, checkpoint = load_model_from_checkpoint(MODEL_PATH)
     except Exception as e:
         print(f"Error loading model: {e}")
         return

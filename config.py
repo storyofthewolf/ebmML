@@ -7,7 +7,7 @@ import os
 # These settings define the architecture for NEW models you train.
 DEFAULT_MODEL_CONFIG = {
     'input_dim': 3,
-    'hidden_dims': [8, 8, 8, 8],
+    'hidden_dims': [4, 4, 4, 4],
     'output_dim': 3,
     'activation': 'ReLU'  # easy toggle: 'Tanh', 'GELU', 'Sigmoid'
 }
@@ -18,8 +18,8 @@ DEFAULT_MODEL_CONFIG = {
 # Change these filenames to switch the entire lab's focus 
 # without editing individual analysis scripts.
 
-ACTIVE_MODEL_FILENAME = 'climate_model.pt'
-ACTIVE_DATA_FILENAME = 'ebm_0d_model_v1_climate_data_1M.csv'
+ACTIVE_MODEL_FILENAME = 'ebm_0d_model_v1_nn.pt'
+ACTIVE_DATA_FILENAME = 'ebm_0d_model_v1_climate_data.csv'
 
 # =========================================================
 # 3. AUTOMATIC PATH GENERATION (The Address Book)

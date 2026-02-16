@@ -68,7 +68,7 @@ def plot_neuron_response():
     
     plt.tight_layout()
     save_path = os.path.join(FIGURES_DIR, 'neuron_3_response_curve.png')
-    plt.savefig(savepath)
+    plt.savefig(save_path)
     print(f"Saved neuron response curve to {save_path}")
 
 if __name__ == "__main__":
