@@ -1,0 +1,37 @@
+# 0D Energy Balance Model - Deeper Architecture
+# Same physics as ebm_0d_v1, testing wider hidden layers
+
+description: "0D EBM with deeper [8,8,8,8] architecture"
+
+data_schema:
+  features:
+    - Ts
+    - log_pCO2
+    - S0
+  
+  targets:
+    - Ts_next
+    - OLR
+    - ASR
+  
+  physics_meta:
+    - Albedo
+    - Emissivity
+    - N_toa
+    - Ts
+
+model_config:
+  hidden_dims: [8, 8, 8, 8]
+  activation: ReLU
+
+training_config:
+  epochs: 20
+  batch_size: 1024
+  learning_rate: 0.001
+  val_batch_size: 4096
+  val_size: 0.2
+  seed: 42
+
+files:
+  data: ebm_0d_model_v1_climate_data.csv
+  model: ebm_0d_model_v1_deep_nn.pt

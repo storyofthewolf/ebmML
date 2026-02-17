@@ -1,6 +1,7 @@
 import torch
 import os
-ys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import MODEL_PATH, FIGURES_DIR
 from climate_nn import load_model_from_checkpoint
 

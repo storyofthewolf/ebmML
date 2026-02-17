@@ -1,0 +1,41 @@
+# 0D Energy Balance Model - Baseline
+# Ice-albedo feedback with linearized greenhouse effect
+
+description: "0D EBM with ice-albedo and linearized greenhouse"
+
+data_schema:
+  # Columns from CSV used as neural network inputs
+  features:
+    - Ts
+    - log_pCO2
+    - S0
+  
+  # Columns from CSV used as neural network outputs
+  targets:
+    - Ts_next
+    - OLR
+    - ASR
+  
+  # Columns preserved for interpretability analysis
+  # (not used in training, but stored in dataset for correlation studies)
+  physics_meta:
+    - Albedo
+    - Emissivity
+    - N_toa
+    - Ts
+
+model_config:
+  hidden_dims: [4, 4, 4, 4]
+  activation: ReLU
+
+training_config:
+  epochs: 20
+  batch_size: 1024
+  learning_rate: 0.001
+  val_batch_size: 4096
+  val_size: 0.2
+  seed: 42
+
+files:
+  data: ebm_0d_model_v1_climate_data.csv
+  model: ebm_0d_model_v1_nn.pt
