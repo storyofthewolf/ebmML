@@ -174,7 +174,7 @@ def plot_bifurcation_diagram(S0_range=None, log_co2_values=None):
     if S0_range is None:
         S0_range = np.linspace(1000, 1600, 300)
     if log_co2_values is None:
-        log_co2_values = [2.5, 3.0, 3.5]  # ~316, 1000, 3162 ppm
+        log_co2_values = [2.0, 3.0, 4.0, 5.0]  # 100, 1000, 10,000, 100,000 ppm
     
     fig, axes = plt.subplots(1, len(log_co2_values), figsize=(5*len(log_co2_values), 5),
                              sharey=True)
@@ -395,7 +395,7 @@ if __name__ == "__main__":
     df = generate_equilibrium_data(n_samples=500_000)
     
     # ---- Step 3: Save ----
-    save_path = "toy_climate_equilibrium_500k.csv"
+    save_path = "../training_sets/ebm_0d_model_v2_data.csv"
     df.to_csv(save_path, index=False)
     print(f"\nSaved dataset to {save_path}")
     

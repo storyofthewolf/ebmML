@@ -213,6 +213,137 @@ class InterpretabilityAnalyzer:
             else:
                 print(f"  {var_name:15s}: No specialized neurons")
 
+    def ablate_neurons(self, layer_name, neuron_indices, sample_size=5000, indices=None):
+        """
+        Zero out specific neurons in a layer and measure the effect on outputs.
+
+        Uses a forward hook to clamp activations to zero during the pass,
+        leaving all weights untouched. This is a non-destructive intervention.
+
+        Args:
+            layer_name: Activation layer to intervene on, e.g. 'act_0'
+            neuron_indices: List of neuron indices to zero out
+            sample_size: Number of samples to evaluate over
+            indices: Specific dataset indices (overrides sample_size)
+
+        Returns:
+            dict with keys:
+              'baseline_output'  : mean output per target, no ablation (n_targets,)
+              'ablated_output'   : mean output per target, with ablation (n_targets,)
+              'delta'            : ablated - baseline (n_targets,)
+              'delta_pct'        : delta as % of baseline output magnitude (n_targets,)
+              'output_names'     : target variable names
+              'neuron_indices'   : which neurons were ablated
+              'layer_name'       : which layer was intervened on
+        """
+        if layer_name not in self.activation_layers:
+            raise ValueError(
+                f"Layer '{layer_name}' not found. Available: {self.activation_layers}"
+            )
+
+        # Get sample indices
+        if indices is None:
+            indices = np.random.choice(len(self.dataset), 
+                                       min(sample_size, len(self.dataset)), 
+                                       replace=False)
+        X_subset = self.dataset.X[indices].to(self.device)
+
+        # Find the network module for this activation layer
+        info = next(x for x in self.model.activation_layer_info 
+                    if x['name'] == layer_name)
+        target_module = self.model.network[info['network_index']]
+
+        # --- Baseline forward pass (no intervention) ---
+        self.model.eval()
+        with torch.no_grad():
+            y_baseline = self.model(X_subset).cpu().numpy()
+
+        # --- Ablation forward pass (zero out specified neurons via hook) ---
+        def ablation_hook(module, input, output):
+            output = output.clone()
+            output[:, neuron_indices] = 0.0
+            return output
+
+        hook_handle = target_module.register_forward_hook(ablation_hook)
+
+        try:
+            with torch.no_grad():
+                y_ablated = self.model(X_subset).cpu().numpy()
+        finally:
+            hook_handle.remove()  # always clean up hook
+
+        # Unscale outputs
+        baseline_out = self.dataset.scaler_Y.inverse_transform(y_baseline)
+        ablated_out  = self.dataset.scaler_Y.inverse_transform(y_ablated)
+
+        baseline_mean = baseline_out.mean(axis=0)
+        ablated_mean  = ablated_out.mean(axis=0)
+        delta         = ablated_mean - baseline_mean
+        baseline_mag  = np.abs(baseline_mean)
+        delta_pct     = np.where(baseline_mag > 1e-8,
+                                 100.0 * delta / baseline_mag,
+                                 np.zeros_like(delta))
+
+        return {
+            'layer_name':      layer_name,
+            'neuron_indices':  list(neuron_indices),
+            'output_names':    self.dataset.target_names,
+            'baseline_output': baseline_mean,
+            'ablated_output':  ablated_mean,
+            'delta':           delta,
+            'delta_pct':       delta_pct,
+        }
+
+    def rank_neurons_by_ablation(self, layer_name, sample_size=5000):
+        """
+        Ablate each neuron individually and rank by impact on output.
+
+        Provides a causal importance ranking: neurons whose removal causes
+        the largest output change are most causally important, regardless
+        of their correlation with any particular physics variable.
+
+        Args:
+            layer_name: Activation layer to rank neurons in
+            sample_size: Samples to evaluate over (shared across all ablations)
+
+        Returns:
+            pd.DataFrame: columns ['neuron', 'layer', 'mean_abs_delta',
+                                   'delta_{target}', 'delta_pct_{target}']
+                          sorted by mean_abs_delta descending
+        """
+        print(f"\nRanking neurons by ablation impact in '{layer_name}'...")
+
+        # Use fixed indices for all ablations so comparisons are fair
+        fixed_indices = np.random.choice(len(self.dataset),
+                                         min(sample_size, len(self.dataset)),
+                                         replace=False)
+
+        # Peek at layer size
+        acts_check, _ = self.get_activations(layer_name, indices=fixed_indices[:1])
+        n_neurons = acts_check.shape[1]
+
+        rows = []
+        for ni in range(n_neurons):
+            result = self.ablate_neurons(layer_name, [ni], indices=fixed_indices)
+
+            row = {
+                'neuron': ni,
+                'layer':  layer_name,
+            }
+            for i, tname in enumerate(result['output_names']):
+                row[f'delta_{tname}']     = result['delta'][i]
+                row[f'delta_pct_{tname}'] = result['delta_pct'][i]
+
+            # Scalar importance: mean absolute % change across all targets
+            row['mean_abs_delta_pct'] = float(np.abs(result['delta_pct']).mean())
+            rows.append(row)
+
+            print(f"  neuron {ni:3d}: Δ={result['delta_pct']}")
+
+        df = pd.DataFrame(rows).sort_values('mean_abs_delta_pct', ascending=False)
+        df = df.reset_index(drop=True)
+        return df
+
 
 # =============================================================================
 # 2. PLOTTING UTILITIES

@@ -14,3 +14,6 @@ __pycache__/
 
 #Apple nonsense
 .DS_Store
+
+# extras directory
+extras/

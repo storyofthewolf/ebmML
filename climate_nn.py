@@ -11,6 +11,7 @@ This module provides:
 Interpretability analysis has been moved to interpretability.py
 """
 
+import argparse
 import numpy as np
 import pandas as pd
 import torch
@@ -28,6 +29,16 @@ from config import (
     get_training_config,
     ACTIVE_EXPERIMENT
 )
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Correlation spectroscopy: correlate neurons with physics variables."
+    )
+    parser.add_argument(
+        '--experiment', type=str, default=None,
+        help="Experiment name (default: ACTIVE_EXPERIMENT in config.py)"
+    )
+    return parser.parse_args()
 
 
 # =============================================================================
@@ -407,8 +418,10 @@ def save_checkpoint(model, train_ds, experiment_config, save_path, history=None)
 # =============================================================================
 
 if __name__ == "__main__":
+    args = parse_args()
+
     # Get full experiment specification
-    experiment = get_experiment()  # Uses ACTIVE_EXPERIMENT from config
+    experiment = get_experiment(args.experiment)  # Uses ACTIVE_EXPERIMENT from config
     
     print(f"\n{'='*60}")
     print(f"Training: {experiment['name']}")

@@ -170,7 +170,7 @@ if __name__ == "__main__":
     
     # Save for your PyTorch script
     # This replaces your .dat files!
-    save_path = "../training_sets/ebm_0d_model_v1_climate_data_1M.csv"
+    save_path = "../training_sets/ebm_0d_model_v1.csv"
     df.to_csv(save_path, index=False)
     print(f"Saved dataset to {save_path}")
     
